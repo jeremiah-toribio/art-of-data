@@ -16,7 +16,7 @@ Tensor Flow, Python, Natural Language Processing (NLP), Pandas, EDA, Facebook, S
 
 ## Project Goals
 ---
-- Accurately predicting an auction house estimate/ price for the art of 10 of the highest grossing artist 
+- Accurately predicting an auction house estimate price for the art of 10 artist of which are the highest grossing/ highest volume within the market
 
 ## Initial Thoughts
 --- 
