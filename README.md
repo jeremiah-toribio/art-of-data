@@ -59,6 +59,7 @@ Tensor Flow, Python, Natural Language Processing (NLP), Pandas, EDA, Facebook, S
 6. ### ⚠️ Disruption in reproducibility - [*artnet.com*](http://artnet.com)
 ***Terms of Service Ch.1***:\
     1. …*You may not modify, create derivative works from, participate in the transfer or sale of, post on the web, or in any way exploit the Site or Services or any portion thereof for any public or commercial use without the express written permission of artnet*…
+    2. We are forced to comply to these terms and may not offer the data to any of those that wish to reproduce/ alter or results.
 
 ## Conclusions 
 
