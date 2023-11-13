@@ -556,6 +556,17 @@ def clean_prep_df(df):
     list_index = [26, 60, 147, 227, 232, 293, 672, 680, 720, 834, 920, 968, 977, 978, 980]
     df.loc[list_index, 'year_created'] = np.NaN
 
+    # Create a new column that contains the first name in title_medium
+    df['artist'] = df['title_medium'].str.extract('(\w+)', expand=False)
+
+    # lower names
+    names = ['Zhang Daqian', 'Andy Warhol', 'Banksy', 'Salvador Dali','Marc Chagall','Pablo Picasso',
+         'Rembrandt van Rijn','KAWS','Leonard Tsuguharu Foujita','Yayoi Kusama']
+    names = [name.lower().strip() for name in names]
+
+    # Replace the short artist names in the artist column with the full names
+    df['artist'] = df['artist'].apply(lambda short_name: next((full_name for full_name in names if short_name.lower().strip() in full_name), short_name))
+
     # using median to impute missing values
     imputer = SimpleImputer(strategy='median')
     df.year_created = imputer.fit_transform(df.year_created.values.reshape(-1,1))
