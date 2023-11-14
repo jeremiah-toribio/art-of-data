@@ -478,8 +478,9 @@ def clean_prep_df(df):
 
     # imputing values that are missing from data
     df['year_created'] = df['year_created'].replace('None', np.nan).fillna(0).astype(float)
-    list_index = [26, 60, 147, 227, 232, 293, 672, 680, 720, 834, 920, 968, 977, 978, 980]
-    df.loc[list_index, 'year_created'] = np.NaN
+    
+    mask = df['year_created'] == 0
+    df.loc[mask, 'year_created'] = np.random.randint(1920, 1981, size=mask.sum())
 
     # Create a new column that contains the first name in title_medium
     df['artist'] = df['title_medium'].str.extract('(\w+)', expand=False)
