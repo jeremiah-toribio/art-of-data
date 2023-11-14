@@ -20,20 +20,22 @@ from sklearn.model_selection import train_test_split
 # imputer
 from sklearn.impute import SimpleImputer
 
-
-
-def pull_images(pdf):
+def pull_images(pdf, name):
     '''
     Pulls images from pdf and saves them as jpgs -- 
     utilizes pypdf2 and pypdf
     '''
+    # new directory for each PDF
+    if not os.path.exists(name):
+        os.makedirs(name)
+
     # reader object
     reader = PdfReader(pdf)
     for page in reader.pages:
         # number of pages within data pdf
         for image in page.images:
             # open as write binary
-            with open(image.name, "wb") as fp:
+            with open(os.path.join(name, image.name), "wb") as fp:
                 fp.write(image.data)
 
 def pull_text(pdf):
@@ -71,7 +73,9 @@ def pull_text(pdf):
 
 def clean_bodies(text):
     '''
-    Prepares
+    Removal of extra text at top of document.
+
+    A quick replace of any additional text.
     '''
 
     # decoding letters with accents into regular letters & removing character symbols
@@ -86,6 +90,8 @@ def clean_bodies(text):
 
 def kaws(kaws_clean):
     '''
+    This function cleans up the KAWS entries by adding a space after the artist name and removing double spaces.
+    It also replaces variations of the artist name with the artist name.
     '''
     kaws_clean = list(set(kaws_clean))
 
@@ -109,6 +115,8 @@ def kaws(kaws_clean):
 
 def banksy(banksy_clean):
     '''
+    This function cleans up the Banksy entries by adding a space after the artist name and removing double spaces.
+    It also replaces variations of the artist name with the artist name.
     '''
     banksy_clean = list(set(banksy_clean))
 
@@ -147,10 +155,12 @@ def rembrandt(rembrandt_clean):
             entry = entry.replace('Studio of Rembrandt van Rijn', 'Rembrandt van Rijn ')
             entry = entry.replace('School of Rembrandt van Rijn', 'Rembrandt van Rijn ')
             entry = entry.replace('Follower of Rembrandt van Rijn', 'Rembrandt van Rijn ')
+            entry = entry.replace('Workshop of Rembrandt van Rijn', 'Rembrandt van Rijn ')
             # removing double spaces
             entry = entry.replace('  ', ' ')
             rembrandt_.append(entry)
 
+    rembrandt_ = [body for body in rembrandt_clean if len(body) <= 450]
     # cleaned Rembrandt entries with multiple appearances of names
     return rembrandt_
 
@@ -250,77 +260,6 @@ def add_ins(new_body,add_ins):
     print(f'After: {len(new_body)}')
     return new_body
 
-def regex(new_body):
-    '''
-    This function applies regular expressions to extract specific fields from the text data.
-    
-    Parameters:
-    new_body (list): A list of text data to be processed.
-
-    Returns:
-    df (DataFrame): A pandas DataFrame containing the extracted fields as columns.
-
-    The function extracts the following fields:
-    - artist: Matches any of the provided artist names at the start of the string.
-    - dimension_cm: Assumes dimensions in cm start with 'Height' and end with 'cm'.
-    - dimension_in: Assumes dimensions in inches start with 'Height' and end with 'in'.
-    - year_created: Assumes year is a 4-digit number before 'Edition'.
-    - date_sold: Matches 'Month YYYY'.
-    - auction_house: Assumes auction house name is after 'ago' and before '[Lot'.
-    - estimate_usd_low: Assumes low estimate in USD is a number (possibly with commas) after 'est. '.
-    - estimate_usd_high: Assumes high estimate in USD is a number (possibly with commas) after 'u '.
-    - hammer_price: Extracts the hammer price in USD.
-    - percent_estimate: Matches 'X% est' after 'USD| '.
-    - title_medium: Extracts the title and medium of the artwork, assumed to be the text before 'Height'.
-    '''
-    data = []
-    patterns = {
-        'artist': r'^(Zhang Daqian|Andy Warhol|Banksy|Salvador Dali|Marc Chagell|Pablo Picasso|\
-                        Rembrandt van Rijn|KAWS|Leonard Tsuguharu Foujita|Yayoi Kusama)',  # Matches any of the provided artist names at the start of the string
-        'dimension_cm': r'(Height.*?cm)',  # Assumes dimensions in cm start with 'Height' and end with 'cm'
-        'dimension_in': r'(Height.*?in)',  # Assumes dimensions in inches start with 'Height' and end with 'in'
-        'year_created': r'in.*?(\d{4})',  # Assumes year is a 4-digit number before 'Edition'
-        'date_sold': r'((?:January|February|March|April|May|June|July|August|September|October|November|December) \d{4})',  # Matches 'Month YYYY'
-        'auction_house': r'ago(.*?)(?=\[Lot)',  # Assumes auction house name is after 'ago' and before '[Lot'
-        #'lot': r'\[Lot (.*?)\]',  # Matches 'Lot X' inside square brackets
-        'estimate_usd_low': r'est\.\s*([\d,]+)',  # Assumes low estimate in USD is a number (possibly with commas) after 'est. '
-        'estimate_usd_high': r'u\s*([\d,]+)\s*USD',  # Assumes high estimate in USD is a number (possibly with commas) after 'u ' and followed by 'USD'
-        'hammer_price': r'USD([\d,\.]+)USD',
-        'percent_estimate': r'USD\|\s*(\d+)% est',  # Matches 'X% est' after 'USD| '
-    }
-
-    for text in new_body:
-        # Extract fields
-        fields = {}
-        for field, pattern in patterns.items():
-            match = re.search(pattern, text)
-            if match:
-                fields[field] = match.group(1)
-            else:
-                fields[field] = None
-        fields = {}
-        for field, pattern in patterns.items():
-            if field == 'edition':
-                fields[field] = 'yes' if 'edition' in text.lower() else 'no'
-            else:
-                match = re.search(pattern, text)
-                if match:
-                    fields[field] = match.group(1)
-                else:
-                    fields[field] = None
-
-        # Extract title_medium from the remaining text
-        match = re.search(r'(.*?)(?=Height)', text)
-        if match:
-            fields['title_medium'] = match.group(1).strip()
-        else:
-            fields['title_medium'] = None
-
-        data.append(fields)
-
-    df = pd.DataFrame(data)
-    return df
-
 def regex_foreign_currency(new_body):
     '''
     This function applies regular expressions to extract specific fields from the text data.
@@ -330,19 +269,6 @@ def regex_foreign_currency(new_body):
 
     Returns:
     df (DataFrame): A pandas DataFrame containing the extracted fields as columns.
-
-    The function extracts the following fields:
-    - artist: Matches any of the provided artist names at the start of the string.
-    - dimension_cm: dimensions in cm start with 'Height' and end with 'cm'.
-    - dimension_in: dimensions in inches start with 'Height' and end with 'in'.
-    - year_created: year is a 4-digit number before 'Edition'.
-    - date_sold: Matches 'Month YYYY'.
-    - auction_house: auction house name is after 'ago' and before '[Lot'.
-    - estimate_usd_low: low estimate in USD is a number (possibly with commas) after 'est. '.
-    - estimate_usd_high: high estimate in USD is a number (possibly with commas) after 'u '.
-    - hammer_price: Extracts the hammer price in USD.
-    - percent_estimate: Matches 'X% est' after 'USD| '.
-    - title_medium: Extracts the title and medium of the artwork, assumed to be the text before 'Height'.
     '''
     data = []
     patterns = {
@@ -401,19 +327,6 @@ def no_foreign_currency_regex(new_body):
 
     Returns:
     df (DataFrame): A pandas DataFrame containing the extracted fields as columns.
-
-    The function extracts the following fields:
-    - artist: Matches any of the provided artist names at the start of the string.
-    - dimension_cm: Assumes dimensions in cm start with 'Height' and end with 'cm'.
-    - dimension_in: Assumes dimensions in inches start with 'Height' and end with 'in'.
-    - year_created: Assumes year is a 4-digit number before 'Edition'.
-    - date_sold: Matches 'Month YYYY'.
-    - auction_house: Assumes auction house name is after 'ago' and before '[Lot'.
-    - estimate_usd_low: Assumes low estimate in USD is a number (possibly with commas) after 'est. '.
-    - estimate_usd_high: Assumes high estimate in USD is a number (possibly with commas) after 'u '.
-    - hammer_price: Extracts the hammer price in USD.
-    - percent_estimate: Matches 'X% est' after 'USD| '.
-    - title_medium: Extracts the title and medium of the artwork, assumed to be the text before 'Height'.
     '''
     data = []
     patterns = {
@@ -466,7 +379,19 @@ def no_foreign_currency_regex(new_body):
 def clean_prep_df(df):
     '''
     This function cleans the DataFrame by converting columns to the correct data types and creating new columns.
-
+    Some cleaning and preparing include:
+        1. Filling None values with np.NaN
+        2. changings dtypes to numerical data
+        3. changing other dtypes
+        4. create dummy columns for format and medium to express the various types of art and its methodology of creation.
+        5. retrieving month sold of art
+        6. Preparing dimensions column and dropping cm (only in in)
+        7. Impuding nulls of percent estimate with 0s to express the hammer_price was within the estimate
+        8. Auction House dummy columns
+        9. dummy columns for artists
+        10. lowering letter cases
+        11. Impuding values that needed (very little rows needed)
+        12. transforming hammer_price logarthimically
     '''
 
     # changing nonetypes to NaN

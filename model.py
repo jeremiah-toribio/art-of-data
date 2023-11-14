@@ -72,7 +72,7 @@ def model_df(df,scaler='MinMax'):
     
     df_scaled = scaler.fit_transform(model_df)
     df_scaled = pd.DataFrame(df_scaled, columns=model_df.columns)
-    print (f'Scaler with params of:\n----\n{scaler.get_params()}')
+    print (f'{scaler} Scaler with params of:\n----\n{scaler.get_params()}')
     return model_df, df_scaled
 
 
@@ -184,7 +184,7 @@ def tweedie_regressor_compiled(x_train, y_train, x_validate, y_validate, target_
     target_std = standard deviation of the original target variable (before transformations)
     '''
     # Parameters defined for GridSearch, train model
-    param_grid = {'power': [0, 1, 2], 'alpha': [0.1, 0.01, 0.001, 0.0001]}
+    param_grid = {'power': [0, 1, 2, 3], 'alpha': [0.1, 0.01, 0.001, 0.0001]}
     tweedie = TweedieRegressor()
     tweedie_gs = GridSearchCV(tweedie, param_grid, cv=5)
     tweedie_gs.fit(x_train, y_train)
