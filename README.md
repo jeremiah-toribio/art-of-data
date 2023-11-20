@@ -62,6 +62,8 @@ Tensor Flow, Python, Natural Language Processing (NLP), Pandas, EDA, Facebook, S
     2. We are forced to comply to these terms and may not offer the data to any of those that wish to reproduce/ alter or results.
 
 ## Conclusions 
-
+- Regression models can get fairly accurate when predicting the price of art
+- Better usage of deep learning model as it is not accurate at all
+- Artists still producing art are more predictable
 ## Recommendation
 - Provide the art industry with a better tool that will potentially allow for higher liquidity within the market and provide more transparency and visibility for consumers
